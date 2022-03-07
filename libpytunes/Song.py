@@ -1,5 +1,5 @@
 from six import iteritems
-
+import time # only for __repr__()
 
 class Song:
     """
@@ -91,6 +91,37 @@ class Song:
     def __iter__(self):
         for attr, value in iteritems(self.__dict__):
             yield attr, value
+    
+    def __str__(self):
+        base_string = "{artist} - {name} | {album} ({year}) {total_time // (1000*60)} {(total_time//1000) % 60:02}"
+        base_string = base_string.format(artist=self.artist, name=self.name, album=self.album, year=self.year)
+        rating_string = ""
+        if self.loved:
+            rating_string += " \u2665" #heart symbol
+        if self.rating is not None and self.rating > 0:
+            star_symbol = "/u2606" if self.rating_computed else "/u2605"
+            star_symbols = star_symbol * (self.rating // 20)
+            rating_string += (" " + star_symbols)
+        song_special_properties = []
+        all_special_properties = ["apple_music", "protected", "podcast"]
+        for prop in all_special_properties:
+            if vars(self).get(prop):
+                song_special_properties.append(prop)
+        special_properties_string = ""
+        if song_special_properties:
+            special_properties_string += " "
+            special_properties_string += "["
+            special_properties_string += ", ".join(song_special_properties)
+            special_properties_string += "]"
+
+        return base_string + rating_string + special_properties_string
+
+    def __repr__(self):
+        args_for_instantiation = []
+        for prop, value in vars(self).items():
+            if value is not None:
+                args_for_instantiation.append("{prop}={repr_value}".format(prop=prop, repr_value=repr(value)))
+        return "Song(" + ", ".join(args_for_instantiation) + ")"
 
     def ToDict(self):
         return {key: value for (key, value) in self}
